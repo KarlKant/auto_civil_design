@@ -1,0 +1,332 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jan 27 14:50:35 2020
+
+@author: xiaoqiqi
+"""
+
+
+
+
+
+#--------------------begin--------------------
+#import
+import json
+import numpy as np
+import networkx as nx
+
+import matplotlib.pyplot as plt
+count_outside_point=1
+#plt.rcParams['font.family']=['Adobe Heiti Std'] #用来正常显示中文标签
+#plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
+
+
+#读取system.json
+f =open('systems.json',encoding='utf-8')
+book = json.loads(f.read())
+book_module = book["modules"]
+book_rule = book["rules"]
+book_rule_type = np.array(book_rule["module_types"])
+book_rule_connects = book_rule["connects"]
+system = book["system"]
+#system["modules"],system["rules"]
+
+#字典的json化
+class module(dict):
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.__dict__ = self
+
+class outside_port(dict):
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.__dict__ = self
+        
+class outside_line(dict):
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.__dict__ = self
+
+#--------------------函数汇总--------------------
+#typeIs函数
+def moduleTypeIs(module):
+    index = np.argwhere(book_rule_type==module["type"])
+    return index[0][0]      
+
+#连接函数
+def moduleConnect(moduleA,moduleB,i,j):
+    a = moduleTypeIs(moduleA)
+    b = moduleTypeIs(moduleB)
+    num = book_rule_connects[a][b]
+    if num!=0:
+        ruleA = True
+        ruleB = True
+    else:
+        ruleA = False
+        ruleB = False
+    for each_num in moduleA.rule:
+        if system["rules"][each_num]["way"] == 'only' and ruleA and ruleB:
+            if j in system["rules"][each_num]["group"]:
+                ruleA = True
+            else:
+                ruleA = False
+        if system["rules"][each_num]["way"] == 'exclusive' and ruleA and ruleB:
+            if j in system["rules"][each_num]["group"] or\
+            b not in system["rules"][each_num]["type"]:
+                ruleA = True
+            else:
+                ruleA = False
+        if system["rules"][each_num]["way"] == 'add':
+           if j in system["rules"][each_num]["group"]:
+                ruleA = True
+                ruleB = True
+    for each_num in moduleB.rule:
+        if system["rules"][each_num]["way"] == 'only' and ruleA and ruleB:
+            if i in system["rules"][each_num]["group"]:
+                ruleB = True
+            else:
+                ruleB = False
+        if system["rules"][each_num]["way"] == 'exclusive' and ruleA and ruleB:
+            if i in system["rules"][each_num]["group"] or\
+            a not in system["rules"][each_num]["type"]:
+                ruleB = True
+            else:
+                ruleB = False
+        if system["rules"][each_num]["way"] == 'add':
+           if i in system["rules"][each_num]["group"]:
+                ruleA = True
+                ruleB = True
+    return (ruleA and ruleB)
+
+def OUTportConnect(lines,ports_rules,ports,portsA,portsB,count_outside_point):
+    for i in portsA:
+        print('#################')
+        for j in portsB:
+            a=i
+            b=j
+            if ports[b].type in ports_rules[ports[a].type] and\
+            ports[a].type in ports_rules[ports[b].type]:
+                if ports[a].degree_now == ports[a].degree:
+                    if ports[a].point==-1:
+                        ports.append(outside_port({
+                                "name":"outside_point_"+str(count_outside_point),
+                                "type":"outside_point",
+                                "degree":0,
+                                "degree_now":0,
+                                "parent":-1,
+                                "point":-1,
+                                "line_":[]
+                                }))
+                        count_outside_point+=1
+                        ports[a].point=len(ports)-1
+                        ports[ports[a].point].line_ = ports[a].line_
+                        line0=lines[ports[a].line_[0]]
+                        if line0.start == a:
+                            end0 = line0.end
+                            end_module0 = line0.end_module
+                            line0.end = ports[a].point 
+                            line0.end_module = -1
+                            ports[end0].point = ports[a].point
+                            ports[end0].line_=[len(lines)]
+                            lines.append(outside_line({
+                                "start":ports[a].point,
+                                "end":end0,
+                                "start_module":-1,
+                                "end_module": end_module0,
+                                "style":"outside",
+                                }))
+                        if line0.end == a:
+                            start0 = line0.start
+                            start_module0 = line0.start_module
+                            line0.start = ports[a].point
+                            line0.start_module = -1
+                            ports[start0].point = ports[a].point
+                            ports[start0].line_=[len(lines)]
+                            lines.append(outside_line({
+                                "start":start0,
+                                "end":ports[a].point,
+                                "start_module":start_module0,
+                                "end_module": -1,
+                                "style":"outside",
+                                }))       
+                    a = ports[a].point
+                    
+                if ports[b].degree_now == ports[b].degree:
+                    if ports[b].point==-1:
+                        ports.append(outside_port({
+                                "name":"outside_point_"+str(count_outside_point),
+                                "type":"outside_point",
+                                "degree":0,
+                                "degree_now":0,
+                                "parent":-1,
+                                "point":-1,
+                                "line_":[]
+                                }))
+                        count_outside_point+=1
+                        ports[b].point=len(ports)-1
+                        ports[ports[b].point].line_ = ports[b].line_
+                        line0=lines[ports[b].line_[0]]
+                        if line0.start == b:
+                            end0 = line0.end
+                            end_module0 = line0.end_module
+                            line0.end = ports[b].point 
+                            line0.end_module = -1
+                            ports[end0].point = ports[b].point
+                            ports[end0].line_=[len(lines)]
+                            lines.append(outside_line({
+                                "start":ports[b].point,
+                                "end":end0,
+                                "start_module":-1,
+                                "end_module": end_module0,
+                                "style":"outside",
+                                }))
+                        if line0.end == b:
+                            start0 = line0.start
+                            start_module0 = line0.start_module
+                            line0.start = ports[b].point
+                            line0.start_module = -1
+                            ports[start0].point = ports[b].point
+                            ports[start0].line_=[len(lines)]
+                            lines.append(outside_line({
+                                "start":start0,
+                                "end":ports[b].point,
+                                "start_module":start_module0,
+                                "end_module": -1,
+                                "style":"outside",
+                                }))       
+                    b = ports[b].point
+                
+                same_line = [linex for linex in ports[a].line_ if linex in ports[b].line_]
+                if same_line == []:#不一定有必要
+                    ports[a].line_.append(len(lines))
+                    ports[b].line_.append(len(lines))
+                    if ports[a].degree>ports[b].degree:
+                        ports[a].degree_now += 1
+                        ports[b].degree_now -= 1
+                        lines.append(outside_line({
+                                "start":a,
+                                "end":b,
+                                "start_module":ports[a].parent,
+                                "end_module": ports[b].parent,
+                                "style":"outside",
+                                }))
+                    else:
+                        ports[a].degree_now -= 1
+                        ports[b].degree_now += 1
+                        lines.append(outside_line({
+                                "start":b,
+                                "end":a,
+                                "start_module":ports[b].parent,
+                                "end_module": ports[a].parent,
+                                "style":"outside",
+                                }))   
+    return count_outside_point
+
+
+#--------------------moudles生成与连接--------------------
+#根据系统模块生成modules
+modules=[]
+repeat=[]
+repeat_num=[]
+for each in system["modules"]:
+    typename = each["name"]
+    flag = 0
+    i=-1
+    for i in range (0,len(repeat)):
+        if repeat[i]==typename:
+            flag=1
+            repeat_num[i]+=1
+            break
+    if flag == 0:
+        repeat.append(typename)
+        repeat_num.append(1)
+        i+=1
+    modules.append(module({
+            "name":typename+'_'+str(repeat_num[i]),#热泵水泵_01
+            "typename":typename,#热泵水泵
+            "rule":each["rule"],
+            "type":book_module[each["name"]]['type'],#冷热源
+            "elements":[],
+            "inside_port_":[],
+            "outside_port_":[],
+            "relevant":[]
+            }))
+       
+#modules添加outside_port_，生成outside_ports
+#同时记录rules
+outside_ports_rules={}
+outside_ports=[]
+count_outside_ports=0
+for i in range(0,len(modules)):
+    j=0
+    for outside_port0 in book_module[modules[i].typename]['outside_ports']:
+        j+=1
+        outside_ports.append(outside_port({
+                "name":modules[i].name+'_'+outside_port0['type']+'_'+str(j),
+                "type":modules[i].type+'_'+outside_port0['type'],
+                "degree":outside_port0['degree'],
+                "degree_now":0,
+                "parent":i,#新生成的节点为-1
+                "point":-1,
+                "line_":[]
+                }))
+        outside_ports_rules[modules[i].type+'_'+outside_port0['type']]=\
+        outside_port0["rules"]
+        modules[i].outside_port_.append(count_outside_ports)
+        count_outside_ports+=1    
+#print(outside_ports_rules)
+    
+    
+#确定系统的连接，relevant
+for i in range(0,len(modules)-1):
+    for j in range(i+1,len(modules)):
+        if moduleConnect(modules[i],modules[j],i,j):
+            modules[i].relevant.append(j);
+            modules[j].relevant.append(i)          
+#print(modules)
+
+
+#outside_lines生成，连线！！！哈哈哈哈哈哈哈哈哈哈哈哈哈哈大快人心！！！！！！
+#毕业论文中，数据结构对应字典，程序框图用来描述长函数
+outside_lines=[]
+count_outside_lines=0
+for i in range(0,len(modules)):
+    for j in modules[i].relevant:
+        if i<j:
+            count_outside_point=OUTportConnect(outside_lines,outside_ports_rules,outside_ports,\
+                        modules[i].outside_port_,modules[j].outside_port_,\
+                        count_outside_point)
+            
+#将points之间的双向定义为inside
+for each in outside_lines:
+    if each.start_module==-1 and each.end_module==-1:
+        for chea in outside_lines:
+            if chea.start_module==-1 and each.end_module==-1:
+                print('--------------')
+                print(each.start,chea.start)
+                print(each.end,chea.end)
+                if each.start == chea.end and each.end==chea.start:
+                    print('hhhhhhhh')
+                
+            
+#绘制逻辑图
+G = nx.DiGraph()      
+for each in outside_lines:
+    if each.start_module!=-1:
+        A = modules[each.start_module].name
+    else:
+        A = outside_ports[each.start].name
+    if each.end_module!=-1:
+        B = modules[each.end_module].name
+    else:
+        B = outside_ports[each.end].name
+    G.add_edge(A,B)
+print('--------------------------------------------------------')
+print('--------------------------------------------------------')
+print("输出全部节点：{}".format(G.nodes()))
+print("输出全部边：{}".format(G.edges()))
+print("输出全部边的数量：{}".format(G.number_of_edges()))
+nx.draw(G,cmap = plt.get_cmap('jet'),with_labels=True,node_size=800,node_color='#307aff',edge_color='g')  
+plt.show()
+

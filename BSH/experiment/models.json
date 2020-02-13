@@ -1,0 +1,36 @@
+{
+    "xxxxx1": [
+        {
+            "part": "冷凝",
+            "enter": 1,
+            "exit": 1,
+            "enter_degree": -999,
+            "exit_degree": 999
+        },
+        {
+            "part": "蒸发",
+            "enter": 1,
+            "exit": 1,
+            "enter_degree": -999,
+            "exit_degree": 999
+        }
+    ],
+    "yyyyy1":[
+        {
+            "part": "本体",
+            "enter": 1,
+            "exit": 1,
+            "enter_degree": -999,
+            "exit_degree": 999
+        }
+    ],
+    "zzzzz0":[
+        {
+            "part": "本体",
+            "enter": 1,
+            "exit": 1,
+            "enter_degree": -999,
+            "exit_degree": 999
+        }
+    ]
+}

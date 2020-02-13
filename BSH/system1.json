@@ -1,0 +1,249 @@
+{
+    "modules": {
+        "热泵水泵": {
+            "type": "冷热源",
+            "position_x":40,
+            "outside_ports": [
+                {
+                    "type": "冷凝_enter",
+                    "degree": -1,
+                    "position_x":0,
+                    "position_y":1,
+                    "rules": [
+                        "冷却_本体_exit"
+                    ]
+                },
+                {
+                    "type": "冷凝_exit",
+                    "degree": 1,
+                    "position_x":0,
+                    "position_y":3,
+                    "rules": [
+                        "冷却_本体_enter"
+                    ]
+                },
+                {
+                    "type": "蒸发_enter",
+                    "degree": -1,
+                    "position_x":10,
+                    "position_y":1,
+                    "rules": [
+                        "末端_本体_exit"
+                    ]
+                },
+                {
+                    "type": "蒸发_exit",
+                    "degree": 1,
+                    "position_x":10,
+                    "position_y":3,
+                    "rules": [
+                        "末端_本体_enter"
+                    ]
+                }
+            ]
+        },
+        "FCU末端": {
+            "type": "末端",
+            "position_x":80,
+            "outside_ports": [
+                {
+                    "type": "本体_enter",
+                    "degree": -1,
+                    "position_x":0,
+                    "position_y":1,
+                    "rules": [
+                        "冷热源_蒸发_exit"
+                    ]
+                },
+                {
+                    "type": "本体_exit",
+                    "degree": 1,
+                    "position_x":0,
+                    "position_y":3,
+                    "rules": [
+                        "冷热源_蒸发_enter"
+                    ]
+                }
+            ]
+        },
+        "AHU末端": {
+            "type": "末端",
+            "position_x":80,
+            "outside_ports": [
+                {
+                    "type": "本体_enter",
+                    "degree": -1,
+                    "position_x":0,
+                    "position_y":1,
+                    "rules": [
+                        "冷热源_蒸发_exit"
+                    ]
+                },
+                {
+                    "type": "本体_exit",
+                    "degree": 1,
+                    "position_x":0,
+                    "position_y":3,
+                    "rules": [
+                        "冷热源_蒸发_enter"
+                    ]
+                }
+            ]
+        },
+        "辐射末端": {
+            "type": "末端",
+            "position_x":80,
+            "outside_ports": [
+                {
+                    "type": "本体_enter",
+                    "degree": -1,
+                    "position_x":0,
+                    "position_y":1,
+                    "rules": [
+                        "冷热源_蒸发_exit"
+                    ]
+                },
+                {
+                    "type": "本体_exit",
+                    "degree": 1,
+                    "position_x":0,
+                    "position_y":3,
+                    "rules": [
+                        "冷热源_蒸发_enter"
+                    ]
+                }
+            ]
+        },
+        "地埋管": {
+            "type": "冷却",
+            "position_x":0,
+            "outside_ports": [
+                {
+                    "type": "本体_enter",
+                    "degree": -1,
+                    "position_x":10,
+                    "position_y":1,
+                    "rules": [
+                        "冷热源_冷凝_exit"
+                    ]
+                },
+                {
+                    "type": "本体_exit",
+                    "degree": 1,
+                    "position_x":10,
+                    "position_y":3,
+                    "rules": [
+                        "冷热源_冷凝_enter"
+                    ]
+                }
+            ]
+        }
+    },
+    "rules": {
+        "module_types": [
+            "冷热源",
+            "冷却",
+            "末端"
+        ],
+        "connects": [
+            [
+                0,
+                1,
+                1
+            ],
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                1,
+                0,
+                0
+            ]
+        ]
+    },
+    "system": {
+        "modules": [
+            {
+                "name":"热泵水泵",
+                "rule":[0]
+            },
+            {
+                "name":"FCU末端",
+                "rule":[1]
+            },
+            {
+                "name":"AHU末端",
+                "rule":[1]
+            },
+            {
+                "name":"辐射末端",
+                "rule":[0]
+            },
+            {
+                "name":"地埋管",
+                "rule":[]
+            },
+            {
+                "name":"热泵水泵",
+                "rule":[1]
+            },
+            {
+                "name":"FCU末端",
+                "rule":[1]
+            },
+            {
+                "name":"AHU末端",
+                "rule":[1]
+            },
+            {
+                "name":"辐射末端",
+                "rule":[0]
+            },
+            {
+                "name":"热泵水泵",
+                "rule":[1]
+            },
+            {
+                "name":"FCU末端",
+                "rule":[1]
+            },
+            {
+                "name":"AHU末端",
+                "rule":[1]
+            }
+        ],
+        "rules": [
+            {
+                "group": [
+                    0,
+                    3,
+                    8
+                ],
+                "type": [
+                    0,
+                    2
+                ],
+                "way": "exclusive"
+            },
+            {
+                "group": [
+                    1,
+                    2,
+                    5,
+                    6,
+                    7,
+                    9,
+                    10,
+                    11
+                ],
+                "type": [
+                    0,
+                    2
+                ],
+                "way": "exclusive"
+            }
+        ]
+    }
+}
